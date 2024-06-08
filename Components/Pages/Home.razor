@@ -1,0 +1,36 @@
+﻿@page "/"
+@using BlazorSSRSendEmail.Models
+@using MailKit.Net.Smtp
+@using MimeKit
+
+<PageTitle>Send Email</PageTitle>
+
+<h1>Send Email</h1>
+<EditForm Model = "EmailRequest" FormName = "EmailForm" OnSubmit = "SendEmail">
+    <InputText @bind-Value="EmailRequest.To" class="form-control mt-2" placeholder= "To" />
+    <InputText @bind-Value="EmailRequest.Subject" class="form-control mt-2" placeholder= "Subject" />
+    <InputText @bind-Value="EmailRequest.Body" class="form-control mt-2" placeholder= "Body" />
+    <button type = "submit" class= "btn btn-primary" mt-2>Send</button>
+
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm(FormName = "EmailForm")]
+    EmailRequest EmailRequest { get; set; } = new();
+    void SendEmail()
+    {
+        var email = new MimeMessage();
+        email.From.Add(MailboxAddress.Parse("adaline.klocko@ethereal.email"));
+        email.To.Add(MailboxAddress.Parse(EmailRequest.To));
+        email.Subject = EmailRequest.Subject;
+        email.Body = new TextPart(MimeKit.Text.TextFormat.Html)
+            {
+                Text = EmailRequest.Body
+            };
+        using var smtp = new SmtpClient();
+        smtp.Connect("smtp.ethereal.email", 587, MailKit.Security.SecureSocketOptions.StartTls);
+        smtp.Authenticate("adaline.klocko@ethereal.email", "vjrSh9dpmrbt94ZUdd");
+        smtp.Send(email);
+        smtp.Disconnect(true);
+    } 
+}
